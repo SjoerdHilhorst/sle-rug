@@ -1,3 +1,14 @@
 form taxOfficeExample {
-
+	"condition"
+	x: boolean
+	"calculation"
+	xy: integer
+	if (x){
+		"melk"
+	y: integer = xy + 1
+	
+	} else {
+	"water"
+	z: integer = 3+5
+	}
 }

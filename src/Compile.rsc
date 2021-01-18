@@ -19,8 +19,8 @@ import util::Math;
  * - be sure to generate uneditable widgets for computed questions!
  * - if needed, use the name analysis to link uses to definitions
  */
-HTML5Attr ngapp(value val) = html5attr("ng-app", val);
-HTML5Attr nghide(value val) = html5attr("ng-hide", val);
+HTML5Attr vmodel(value val) = html5attr("v-model", val);
+HTML5Attr vif(value val) = html5attr("v-if", val);
 
 void compile(AForm f) {
   writeFile(f.src[extension="js"].top, form2js(f));
@@ -35,18 +35,19 @@ HTML5Node form2html(AForm f) {
   		title("<f.name>")	
   	),
   	body(
-  		ngapp(""),
   		h1("<f.name>"),
-  		form(
-  			([] | it + form2html(q) | AQuestion q <- f.questions)
-  			+ button(\type("button"), "submit", onclick("evalForm()"))
-  			)
+  		div(
+  			id("form"),
+	  		form(
+	  			([] | it + form2html(q) | AQuestion q <- f.questions)
+	  			)
+	  		)
+  	),
+  	 script(
+  		src("https://cdn.jsdelivr.net/npm/vue/dist/vue.js")
   	),
   	script(
   		src(f.src[extension="js"].top.file)
-  	),
-  	script(
-  		src("https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js")
   	)
   );
 }
@@ -54,14 +55,14 @@ HTML5Node form2html(AForm f) {
 list[HTML5Node] form2html(AQuestion q){
 	switch(q){
 		case question(str q, AId aid, \integer()): 
-			return [div(label(q), input(\type("integer"), placeholder("Input integer"), id(aid.name)))];
+			return [div(label(q), input(\type("number"), placeholder("Input integer"), vmodel(aid.name)))];
 		case question(str q, AId aid, \boolean()): 
-			return [div("text, {{5+5}}", nghide("{{false}}"), label(q), select(option("false", \value(false)), option("true", \value(true)), id(aid.name)))];
+			return [div(label(q), select(\type("number"),option("false", \value(0)), option("true", \value(1)), vmodel(aid.name)))];
 		case cquestion(str q, AId aid, AType t, AExpr expr): 
-			return [p("<q>: ", p(expr2js(expr), id(aid.name)))];
+			return [p("<q>: ", p("{{<aid.name>()}}", id(aid.name)))];
 		case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq):
-			return [div(([id("if")] | it + form2html(q) | AQuestion q <- thenq))]+
-			[div(([id("else")] | it + form2html(q) | AQuestion q <- elseq))];
+			return [div(([vif(expr2js(c))] | it + form2html(q) | AQuestion q <- thenq))]+
+			[div(([vif("!<expr2js(c)>")] | it + form2html(q) | AQuestion q <- elseq))];
 	}
 }
 
@@ -80,20 +81,10 @@ str initial(AQuestion q){
 
 str createFun(AQuestion q){
 	switch(q){
-		case question(str q, AId aid, \boolean()): 
-			return "data.<aid.name> = document.getElementById(\"<aid.name>\").value == \"true\";\n";
-		case question(str q, AId aid, \integer()): 
-			return "data.<aid.name> = parseInt(document.getElementById(\"<aid.name>\").value);\n";
 		case cquestion(str q, AId aid, _, AExpr expr): 
-			return "document.getElementById(\"<aid.name>\").innerHTML = <expr2js(expr)>;\n";
+			return "<aid.name>: function(){return <expr2js(expr)>},\n";
 		case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq):{
-			return "if (<expr2js(c)>) { 
-					'	document.getElementById(\"if\").style.display = \"block\";
-					'   document.getElementById(\"else\").style.display = \"none\";
-					'	} else {
-					'   document.getElementById(\"else\").style.display = \"block\";
-					'	document.getElementById(\"if\").style.display = \"none\";\n}"
-			 + ("" | it + createFun(tq) | AQuestion tq <- thenq)
+			return ("" | it + createFun(tq) | AQuestion tq <- thenq)
 			 + ("" | it + createFun(eq) | AQuestion eq <- elseq);	
 			 }				
 		default: return "";
@@ -101,19 +92,22 @@ str createFun(AQuestion q){
 }
 
 str form2js(AForm f) {
-	str js = "data = {\n";
+	str js = "app = new Vue({
+				' el: \'#form\',
+				' data: {";
+				
 	 for (AQuestion q <- f.questions){
   		js += initial(q);
   	}
-  	js += "}\n function evalForm(){";
+  	js += "},\n methods: {";
   	js += ("" | it + createFun(q) | AQuestion q <- f.questions);
-  	js += "}";
+  	js += "}})";
 	return js;
 }
 
 str expr2js(AExpr e) {
   switch (e) {
-    case ref(id(str x)): return "data.<x>";
+    case ref(id(str x)): return "parseFloat(this.<x>)";
     case boolean(true): return "true";
     case boolean(false): return "false";
     case brackets(AExpr e): return "(" + expr2js(e)+ ")";

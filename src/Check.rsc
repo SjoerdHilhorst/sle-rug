@@ -25,14 +25,27 @@ TEnv collect(AForm f) {
 
 Type AType2Type(AType t){
   switch(t){
-  	case \integer(): return tint();
-  	case \boolean(): return tbool();
+  	case boolean(): {
+  		//println(" type: <t> tbool");
+  	
+  		return tbool();
+  	}
+  	case integer(): {
+  	  		//println(" type: <t> tint");
+  	 	return tint();
+  	}
   	default: {return tunknown();}
   	}
 }
 
 set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
-  return ( {} | it + check(q, tenv, useDef) | AQuestion q <- f.questions); 
+	//println( (tenv));
+	x=  ({} | it + check(q, tenv, useDef) | AQuestion q <- f.questions); 
+  	//println("---------");
+  	//println( (tenv));
+  	  return x;
+  	
+  
 }
 
 // - produce an error if there are declared questions with the same name but different types.
@@ -40,7 +53,6 @@ set[Message] check(AForm f, TEnv tenv, UseDef useDef) {
 // - the declared type computed questions should match the type of the expression.
 set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
 	set[Message] msgs = {};
-	//println( ({qs, t | <src, "yes",qs, t> <- tenv}));
 	//println( size({qs | <src, "yes ",qs, Type t> <- tenv}));
 	
 	
@@ -50,13 +62,15 @@ set[Message] check(AQuestion q, TEnv tenv, UseDef useDef) {
 	      + {error("Duplicate question label", q.src) | size({l | <loc l, _, label, _> <- tenv}) > 1};
 	    case cquestion(str label, i:id(str n), AType \type, AExpr expr):
 	      return {error("Duplicate question", i.src) | size({t | <_, n, qs, Type t> <- tenv}) > 1}
-	      + {error("Duplicate question label", q.src) | size({l | <loc l, _, label, _> <- tenv}) > 1}
-	      + {error("Expression type does not match question type", \type.src) | typeOf(expr, tenv, useDef) != AType2Type(\type)}
+	      + {error("Duplicate question label: <label>", q.src) | size({l | <loc l, _, label, _> <- tenv}) > 1}
+	      + {error("Expression type does not match question type", q.src) | typeOf(expr, tenv, useDef) != AType2Type(\type)}
 	      + check(expr, tenv, useDef);	      
 	  	case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq):
+	  	{ //println("<typeOf(c, tenv, useDef)>, <c>");
 	      return {error("If condition expression is not a boolean type", c.src)| typeOf(c, tenv, useDef) != tbool()}
       		+ ( {} | it + check(tq, tenv, useDef) | AQuestion tq <- thenq )
       		+ ( {} | it + check(eq, tenv, useDef) | AQuestion eq <- elseq );
+      	}
       			      
 	    default: return {};
 	}
@@ -211,7 +225,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case less(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -219,7 +233,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case greater(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -227,7 +241,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case leq(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -235,7 +249,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case geq(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -243,7 +257,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case equals(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -251,7 +265,7 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       }
     }
     case notequals(AExpr expr1, AExpr expr2): {
-      if(typeOf(expr1, tenv, useDef) == tint() && typeOf(expr2, tenv, useDef) == tint()){
+      if(typeOf(expr1, tenv, useDef) == typeOf(expr2, tenv, useDef) && typeOf(expr1, tenv, useDef) != tunknown()){
       	return tbool();
       }
       else{
@@ -274,14 +288,14 @@ Type typeOf(AExpr e, TEnv tenv, UseDef useDef) {
       	return tunknown();
       }
     }
-    case ref(id(_, src = loc u)): { 
-    	println(tenv);
-    	println({t, d |<u, loc d> <- useDef, <d, _, _, Type t> <- tenv}); 
-      	
-      if (<d, _, _, Type t> <- tenv, <u, loc d> <- useDef) {
-      	println(t);
-        return t;
-      }
+    case ref(id(str x, src = loc u)): { 
+	//change the function because it had some weird behaviour for me
+    ud = <u, loc d> <- useDef;
+    tv = <d, x, _, Type t> <- tenv;
+      if (ud && tv) {
+  		t = [t | <d, x, _, Type t> <- tenv];
+    	return t[0];  	
+      }      
      }
     case integer(int n):
       return tint();

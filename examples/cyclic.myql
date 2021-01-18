@@ -9,16 +9,14 @@ form taxOfficeExample {
     "What was the selling price?"
       sellingPrice: integer = valueResidue
     "Private debts for the sold house:"
-      privateDebt: boolean
+      privateDebt: integer
     "Value residue:"
       valueResidue: integer = 
-        ((sellingPrice - false) * 2)
+        ((sellingPrice - privateDebt) * 2)
   }
 
-  if (privateDebt >9) {
+  if (privateDebt>0) {
     "Did you sell a house in 2010?"
        hasSoldHouse: boolean
   }
-    
-
 }

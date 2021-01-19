@@ -3,6 +3,7 @@ module Transform
 import Syntax;
 import Resolve;
 import AST;
+import IO;
 
 /* 
  * Transforming QL forms
@@ -29,7 +30,26 @@ import AST;
  */
  
 AForm flatten(AForm f) {
-  return f; 
+  return form(f.name, ([] | it + flatten(q, boolean(true)) | q <- f.questions)); 
+}
+
+list[AQuestion] flatten(AQuestion q, AExpr con){
+	switch(q){
+		case question(_,_,_): return [cond(con, [q], [])];
+		case cquestion(_,_,_,_): return [cond(con, [q], [])];
+		case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq):
+			return ([] | it + flatten(tq, and(con ,c)) | tq <- thenq)
+			+ ([] | it + flatten(eq, and(not(c) ,con)) | eq <- elseq);
+		default: return [];
+	}
+}
+
+void print(AForm f){
+	visit(f){
+		case question(_,AId id,_): 	println("<id.name>");
+		case cquestion(_,AId id,_,AExpr expr): println("<id.name> <expr>");
+		case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq): println("if <c>, then" );
+	}
 }
 
 /* Rename refactoring:

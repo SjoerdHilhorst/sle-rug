@@ -1,0 +1,4 @@
+form testExample {
+	"have you blable?"
+	hasblable: boolean
+}

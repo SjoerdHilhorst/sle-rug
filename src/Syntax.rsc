@@ -40,6 +40,8 @@ syntax Expr
   | Bool
   ;
   
+  
+  
 syntax Type
   = "boolean"
   | "integer"
@@ -48,6 +50,7 @@ syntax Type
 lexical Str = "\"" ([0-9 A-Z _ a-z]|" ")*[? :]? "\"";
 
 lexical Int = [0-9]*;
+
 
 lexical Bool = 
 	| "true" value

@@ -51,7 +51,6 @@ VEnv eval(AQuestion q, Input inp, VEnv venv) {
   // evaluate inp and computed questions to return updated VEnv
   switch(q){
   	case question(str q, AId id, AType \type):{
-  		//println(q, inp);
   		return venv + (id.name: inp.\value | inp.question == q);
   		}
   	case cquestion(str q, AId id, AType \type, AExpr expr):
@@ -65,7 +64,6 @@ VEnv eval(AQuestion q, Input inp, VEnv venv) {
 		}
   	}
   }
-  
   return venv; 
 }
 

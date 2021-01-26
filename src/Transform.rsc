@@ -4,6 +4,8 @@ import Syntax;
 import Resolve;
 import AST;
 import IO;
+import ParseTree;
+import lang::std::Id;
 
 /* 
  * Transforming QL forms
@@ -43,15 +45,6 @@ list[AQuestion] flatten(AQuestion q, AExpr con){
 		default: return [];
 	}
 }
-
-void print(AForm f){
-	visit(f){
-		case question(_,AId id,_): 	println("<id.name>");
-		case cquestion(_,AId id,_,AExpr expr): println("<id.name> <expr>");
-		case cond(AExpr c, list[AQuestion] thenq, list[AQuestion] elseq): println("if <c>, then" );
-	}
-}
-
 /* Rename refactoring:
  *
  * Write a refactoring transformation that consistently renames all occurrences of the same name.
@@ -60,7 +53,24 @@ void print(AForm f){
  */
  
  start[Form] rename(start[Form] f, loc useOrDef, str newName, UseDef useDef) {
-   return f; 
+	set[loc] toRename =  useOrDef 
+					  + { d | <useOrDef, loc d> <- useDef }
+					  + { u | <loc u, useOrDef> <- useDef };
+
+	return visit (f){
+		case (Question)`<Str name> <Id i>: <Type t>`
+			=> (Question)`<Str name> <Id nn>:<Type t>`
+				when i@\loc in toRename, 
+				Id nn := [Id]newName
+		case (Question)`<Str name> <Id i> : <Type t> = <Expr e>`
+			=> (Question)`<Str name><Id nn>:<Type t>=<Expr e>`
+				when i@\loc in toRename,
+				Id nn := [Id]newName
+		case (Expr)`<Id i>`
+			=> (Expr)`<Id nn>`
+				when i@\loc in toRename, 
+				Id nn := [Id]newName
+	}
  } 
  
  

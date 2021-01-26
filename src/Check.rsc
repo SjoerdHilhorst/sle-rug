@@ -3,7 +3,6 @@ module Check
 import AST;
 import Resolve;
 import Message; // see standard library
-import IO;
 import Set;
 
 data Type

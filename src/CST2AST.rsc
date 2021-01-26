@@ -40,7 +40,6 @@ AQuestion cst2ast(Question q) {
 }
 
 AExpr boolOrInt(AType t){
-	//println(t@\loc);
 	switch(t){
 		case boolean(): return boolean(false);
 		case \integer(): return integer(0); 
@@ -59,10 +58,10 @@ AExpr cst2ast(Expr e) {
     case (Expr)`<Expr l> - <Expr r>`: return subtract(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Expr l> \> <Expr r>`: return greater(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Expr l> \< <Expr r>`: return less(cst2ast(l), cst2ast(r), src=e@\loc);
-   	//case (Expr)`<Expr expr1> \>= <Expr expr2>`: return geq(cst2ast(expr1), cst2ast(expr2), src=e@\loc);
-    //case (Expr)`<Expr l> \<= <Expr r>`: return leq(cst2ast(l), cst2ast(r), src=e@\loc);
+    case (Expr)`<Expr expr1> \>= <Expr expr2>`: return geq(cst2ast(expr1), cst2ast(expr2), src=e@\loc);
+    case (Expr)`<Expr l> \<= <Expr r>`: return leq(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Expr l> == <Expr r>`: return equals(cst2ast(l), cst2ast(r), src=e@\loc);
-    //case (Expr)`<Expr l> != <Expr r>`: return notequals(cst2ast(l), cst2ast(r), src=e@\loc);
+    case (Expr)`<Expr l> != <Expr r>`: return notequals(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Expr l> || <Expr r>`: return or(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Expr l> && <Expr r>`: return and(cst2ast(l), cst2ast(r), src=e@\loc);
     case (Expr)`<Int i>`: return integer(toInt("<i>"), src=i@\loc);

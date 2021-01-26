@@ -28,8 +28,6 @@ void compile(AForm f) {
 }
 
 HTML5Node form2html(AForm f) {
-	println("here1"); 
-
   return html(
   	head(
   		title("<f.name>")	

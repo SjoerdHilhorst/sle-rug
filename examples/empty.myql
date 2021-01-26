@@ -1,3 +1,8 @@
-form taxOfficeExample {
-
+form binary {
+ "joe" q0: boolean
+	if (q0){
+		"joe1" q1: boolean
+	}else {
+	"joe2" q2: boolean	
+	}
 }
